@@ -1,0 +1,200 @@
+
+// Written by Jeremy Fristoe
+// CEN-3024C-17056 Module 6 v3, 10/18/20
+// This program references and processes specific areas of text on a website, outputting the frequency
+// of occurrences for each word and sorting based on which words are most frequently used.  This version
+// introduces an overlaid GUI for basic user interaction.
+
+package m6v3;
+
+import java.io.*;
+import java.util.*;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+
+public class TextAnalyzer extends Application {
+	
+	public void start(Stage primaryStage) {
+
+		try {
+			// Primary stage settings
+			primaryStage.setTitle("Text Analyzer Program");
+			
+			
+			// Pane settings
+			AnchorPane pane = new AnchorPane();
+			pane.setMinHeight(800);
+			pane.setMinWidth(700);
+			pane.setStyle("-fx-border-color: lightblue; -fx-border-width: 35px 35px 35px 35px");
+
+			
+			// Scene settings
+			Scene scene = new Scene(pane);
+			
+			
+			// "Welcome screen" settings
+			Label welcome = new Label("                              Welcome!\n\nPlease enter your name to launch the program.");
+	        welcome.setTextFill(Color.WHITE);
+			welcome.setStyle("-fx-background-color: navy");
+			welcome.setFont(Font.font("Times", 28));
+			welcome.setAlignment(Pos.CENTER);
+			AnchorPane.setTopAnchor(welcome, 60.0);
+			AnchorPane.setRightAnchor(welcome, 10.0);
+			AnchorPane.setBottomAnchor(welcome, 10.0);
+			AnchorPane.setLeftAnchor(welcome, 10.0);
+			
+			TextField nameField = new TextField();
+			nameField.setFont(Font.font("Arial", 20));
+			AnchorPane.setTopAnchor(nameField, 15.0);
+//			AnchorPane.setRightAnchor(nameField, 275.0);
+//			AnchorPane.setBottomAnchor(nameField, 330.0);
+			AnchorPane.setLeftAnchor(nameField, 10.0);
+			pane.getChildren().add(nameField);
+			
+			
+			// "Running program screen" settings
+
+			Button thanks = new Button ("    Thanks for trying the text analyzer program!\n\n"
+					+ " Retrieving info from website and analyzing data.\n\n\n\n" +
+					"When you are ready, please close this window\n     and the results will appear in your console.");
+			        thanks.setTextFill(Color.WHITE);
+					thanks.setStyle("-fx-background-color: navy");
+					thanks.setFont(Font.font("Times", 28));
+					thanks.setAlignment(Pos.CENTER);
+					AnchorPane.setTopAnchor(thanks, 60.0);
+					AnchorPane.setRightAnchor(thanks, 10.0);
+					AnchorPane.setBottomAnchor(thanks, 10.0);
+					AnchorPane.setLeftAnchor(thanks, 10.0);
+		        thanks.setOnAction(new EventHandler<ActionEvent>() {
+		            public void handle(ActionEvent event) {
+		            }
+		        });
+			
+			
+			// Launch program
+	        nameField.setOnAction(new EventHandler<ActionEvent>() {
+	        	public void handle(ActionEvent event) {
+	        		if(nameField.getText().isEmpty()) {
+//	        			showAlert(Alert.AlertType.ERROR, pane.getScene().getWindow(), "Something's wrong!", "Please try again.");
+	        			return;
+	        		}
+	        		else {
+		    			try {
+							Thread.sleep(600);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+	        		}
+//	        		showAlert(Alert.AlertType.INFORMATION, pane.getScene().getWindow(), "Thank you " + nameField.getText() + "!", "Let's play!");
+
+	        		welcome.setVisible(false);
+	        		nameField.setVisible(false);
+	    			pane.getChildren().add(thanks);
+	        	}
+	        });
+
+
+			// Initiate welcome
+			pane.getChildren().add(welcome);
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+	
+		Map<String, Word> countMap = new HashMap<String, Word>();
+		Application.launch(args);
+
+		// Connecting to the site and pulling the data
+//		System.out.println("Retrieving info from website and analyzing data. One moment, please...\n");
+		
+		Document doc = Jsoup.connect("https://www.gutenberg.org/files/1065/1065-h/1065-h.htm").timeout(25000).get();
+
+		// To get the list of all links from a website
+		Elements paragraphs = doc.getElementsByTag("p");
+		Elements heading1 = doc.getElementsByTag("h1");
+		Elements heading3 = doc.getElementsByTag("h3");
+		Elements heading4 = doc.getElementsByTag("h4");
+
+
+		//Getting the actual text from the page, excluding the HTML
+		String text = doc.body().getElementsByTag("p").text();
+//		String text = doc.getElementsByTag("p").text() + " " + doc.getElementsByTag("h1").text() + " " +
+//				doc.getElementsByTag("h3").text() + " " + doc.getElementsByTag("h4").text();
+//		System.out.println(text);
+//		int lineNumber;
+
+		System.out.println("#       Words\n-------------------");
+
+		// Create BufferedReader so the words can be counted
+//		LineNumberReader lnr = null;
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(text.toLowerCase().getBytes())));
+			String line;
+			while ((line = reader.readLine()) != null) {
+//				for (lineNumber = 85; lineNumber < 270; lineNumber++) {
+				String[] words = line.split("[^a-zA-z]");
+					for (String word : words) {
+						if ("".equals(word)) {
+							continue;
+						}
+						Word wordObj = countMap.get(word);
+						if (wordObj == null) {
+							wordObj = new Word();
+							wordObj.word = word;
+							wordObj.count = 0;
+							countMap.put(word, wordObj);
+						}
+						wordObj.count++;
+					}
+				}
+		    reader.close();
+		}
+		
+		finally {
+			
+		}
+	
+	    SortedSet<Word> sortedWords = new TreeSet<Word>(countMap.values());
+	    int i = 0;
+	    int maxWordsToDisplay = 20;
+	
+	    for (Word word : sortedWords) {
+	        if (i >= maxWordsToDisplay) {
+	             break;
+	        }
+	        else {
+	            System.out.println(word.count + "\t" + word.word);
+	            i++;
+	        }
+	
+		}
+	
+	}
+
+	public static class Word implements Comparable<Word> {
+	     String word;
+	     int count;
+
+	     public int hashCode() { return word.hashCode(); }
+	     public boolean equals(Object obj) { return word.equals(((Word)obj).word); }
+	     public int compareTo(Word b) { return b.count - count; }
+	}
+}
