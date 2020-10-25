@@ -1,8 +1,8 @@
 
 // Written by Jeremy Fristoe
-// CEN-3024C-17056 Module 6 v3, 10/18/20
+// CEN-3024C-17056 Module 6 v3, 10/25/20
 // This program references and processes specific areas of text on a website, outputting the frequency
-// of occurrences for each word and sorting based on which words are most frequently used.  This version
+// of occurrences for each word and sorting based on which words are most frequently used.  Module 6
 // introduces an overlaid GUI for basic user interaction.
 
 package m6v3;
@@ -11,7 +11,6 @@ import java.io.*;
 import java.util.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -59,14 +58,11 @@ public class TextAnalyzer extends Application {
 			TextField nameField = new TextField();
 			nameField.setFont(Font.font("Arial", 20));
 			AnchorPane.setTopAnchor(nameField, 15.0);
-//			AnchorPane.setRightAnchor(nameField, 275.0);
-//			AnchorPane.setBottomAnchor(nameField, 330.0);
 			AnchorPane.setLeftAnchor(nameField, 10.0);
 			pane.getChildren().add(nameField);
 			
 			
 			// "Running program screen" settings
-
 			Button thanks = new Button ("    Thanks for trying the text analyzer program!\n\n"
 					+ " Retrieving info from website and analyzing data.\n\n\n\n" +
 					"When you are ready, please close this window\n     and the results will appear in your console.");
@@ -88,7 +84,6 @@ public class TextAnalyzer extends Application {
 	        nameField.setOnAction(new EventHandler<ActionEvent>() {
 	        	public void handle(ActionEvent event) {
 	        		if(nameField.getText().isEmpty()) {
-//	        			showAlert(Alert.AlertType.ERROR, pane.getScene().getWindow(), "Something's wrong!", "Please try again.");
 	        			return;
 	        		}
 	        		else {
@@ -98,8 +93,6 @@ public class TextAnalyzer extends Application {
 							e.printStackTrace();
 						}
 	        		}
-//	        		showAlert(Alert.AlertType.INFORMATION, pane.getScene().getWindow(), "Thank you " + nameField.getText() + "!", "Let's play!");
-
 	        		welcome.setVisible(false);
 	        		nameField.setVisible(false);
 	    			pane.getChildren().add(thanks);
@@ -123,54 +116,38 @@ public class TextAnalyzer extends Application {
 		Application.launch(args);
 
 		// Connecting to the site and pulling the data
-//		System.out.println("Retrieving info from website and analyzing data. One moment, please...\n");
-		
-		Document doc = Jsoup.connect("https://www.gutenberg.org/files/1065/1065-h/1065-h.htm").timeout(25000).get();
+		System.out.println("Retrieving info from website and analyzing data. One moment, please...\n");
 
 		// To get the list of all links from a website
-		Elements paragraphs = doc.getElementsByTag("p");
-		Elements heading1 = doc.getElementsByTag("h1");
-		Elements heading3 = doc.getElementsByTag("h3");
-		Elements heading4 = doc.getElementsByTag("h4");
-
-
+		Document doc = Jsoup.connect("https://www.gutenberg.org/files/1065/1065-h/1065-h.htm").timeout(25000).get();
+		
 		//Getting the actual text from the page, excluding the HTML
-		String text = doc.body().getElementsByTag("p").text();
-//		String text = doc.getElementsByTag("p").text() + " " + doc.getElementsByTag("h1").text() + " " +
-//				doc.getElementsByTag("h3").text() + " " + doc.getElementsByTag("h4").text();
-//		System.out.println(text);
-//		int lineNumber;
+		String text = doc.body().getElementsByTag("h1").text() + " " + doc.body().getElementsByTag("h4").text() + " " 
+				+ doc.body().getElementsByTag("h3").text() + " " + doc.body().getElementsByTag("p").text();
 
 		System.out.println("#       Words\n-------------------");
 
-		// Create BufferedReader so the words can be counted
-//		LineNumberReader lnr = null;
-		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(text.toLowerCase().getBytes())));
-			String line;
-			while ((line = reader.readLine()) != null) {
-//				for (lineNumber = 85; lineNumber < 270; lineNumber++) {
-				String[] words = line.split("[^a-zA-z]");
-					for (String word : words) {
-						if ("".equals(word)) {
-							continue;
-						}
-						Word wordObj = countMap.get(word);
-						if (wordObj == null) {
-							wordObj = new Word();
-							wordObj.word = word;
-							wordObj.count = 0;
-							countMap.put(word, wordObj);
-						}
-						wordObj.count++;
+		//Create BufferedReader so the words can be counted
+		BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(text.getBytes())));
+		String line;
+		while ((line = reader.readLine()) != null) {
+			String[] words = line.split("[^a-zA-z]");
+				for (String word : words) {
+					if ("".equals(word)) {
+						continue;
 					}
+					Word wordObj = countMap.get(word);
+					if (wordObj == null) {
+						wordObj = new Word();
+						wordObj.word = word;
+						wordObj.count = 0;
+						countMap.put(word, wordObj);
+					}
+					wordObj.count++;
 				}
-		    reader.close();
 		}
-		
-		finally {
-			
-		}
+
+	    reader.close();
 	
 	    SortedSet<Word> sortedWords = new TreeSet<Word>(countMap.values());
 	    int i = 0;
@@ -194,7 +171,9 @@ public class TextAnalyzer extends Application {
 	     int count;
 
 	     public int hashCode() { return word.hashCode(); }
+
 	     public boolean equals(Object obj) { return word.equals(((Word)obj).word); }
+
 	     public int compareTo(Word b) { return b.count - count; }
 	}
 }
